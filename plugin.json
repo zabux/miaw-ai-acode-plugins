@@ -2,7 +2,7 @@
   "id": "xiex.my.id_api_ai",
   "name": "Brainxiex AI",
   "main": "dist/main.js",
-  "version": "3.1.2",
+  "version": "3.2.2",
   "readme": "readme.md",
   "icon": "icon.jpg",
   "files": [],
