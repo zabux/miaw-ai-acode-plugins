@@ -1,9 +1,6 @@
 import plugin from "../plugin.json";
 
-import OpenAI from "openai";
 import axios from "axios";
-
-
 
 const SideButton = acode.require("sideButton");
 const Prompt = acode.require("prompt");
@@ -13,129 +10,83 @@ const selectionMenu = acode.require("selectionMenu");
 const appSettings = acode.require("settings");
 const alert = acode.require("alert");
 
-let XIEX_MY_ID_API_AI_MODELS = {
+const GROQ_MODELS = {
   "object": "list",
   "data": [
     {
-      "id": "brainxiex",
-      "name": "Brainxiex Ai",
+      "id": "mixtral-8x7b-32768",
+      "name": "Mixtral-8x7b",
       "object": "model",
-      "owned_by": "Barqah Xiex",
-      "created": 1712102400,
-      "description": {
-        "identitas": "Ai bernama Brainxiex Ai dibuat pada 3 April 2024.",
-        "pembuat": "Di Kembangkan oleh Brainxiex Development. dan pembuatnya bernama Barqah Xiex.",
-        "keahlian": "Pandai dan ahli di segala hal termasuk pemrograman komputer, memasak, dan lain sebagainya."
-      }
+      "owned_by": "Groq"
     },
     {
-      "id": "miaw",
-      "name": "Miaw",
+      "id": "llama2-70b-4096",
+      "name": "Llama2-70b",
       "object": "model",
-      "owned_by": "Awy",
-      "created": 1714694400,
-      "description": {
-        "identitas": "Anak kecil yang pintar bernama Miaw",
-        "pembuat": "Di Kembangkan oleh Brainxiex Development. dan pembuatnya bernama Awy dan di kembangkan oleh Barqah Xiex.",
-        "keahlian": "Anak yang faham tentang agama dan cocok di ajak ngobrol."
-      }
+      "owned_by": "Groq"
     },
     {
-      "id": "cecep",
-      "name": "Cecep",
+      "id": "gemma-7b-it",
+      "name": "Gemma-7b",
       "object": "model",
-      "owned_by": "Barqah Xiex",
-      "created": 1719964800,
-      "description": {
-        "identitas": "Laki-laki yang berasal dari suku Sunda Priangan bernama Cecep di buat pada 3 July 2024.",
-        "pembuat": "Di Kembangkan oleh Brainxiex Development. dan pembuatnya bernama Barqah Xiex.",
-        "keahlian": "Pandai dan ahli di segala hal termasuk pemrograman komputer, musik, memasak, agama, dan lain sebagainya."
-      }
-    },
-    {
-      "id": "gpt",
-      "name": "BX-GPT",
-      "object": "model",
-      "owned_by": "ChatGPT GPT3.5 OpenAi FT Brainxiex BXGPT1",
-      "created": 1722643200,
-      "description": {
-        "identitas": "Ai GPT bernama BX-GPT.",
-        "pembuat": "Di Kembangkan oleh Brainxiex Development. dan pembuatnya bernama Barqah Xiex.",
-        "keahlian": "Layaknya GPT seperti biasanya."
-      }
-    },
-    {
-      "id": "lite",
-      "name": "Brainxiex GPT LITE",
-      "object": "model",
-      "owned_by": "Barqah Xiex",
-      "created": 1727913600,
-      "description": {
-        "identitas": "AI LLM bernama Brainxiex GPT LITE",
-        "pembuat": "Di Kembangkan oleh Brainxiex Development. dan pembuatnya bernama Barqah Xiex.",
-        "keahlian": "Lebih Minim dan Cepat."
-      }
-    },
-    {
-      "id": "konita",
-      "name": "Konita",
-      "object": "model",
-      "owned_by": "Barqah Xiex",
-      "created": 1747180800,
-      "description": {
-        "identitas": "AI Customer Service yang ramah dan baik hati Bernama Konita.",
-        "pembuat": "Dikembangkan oleh Brainxiex Development. Pembuatnya bernama Barqah Xiex.",
-        "keahlian": "Ahli dalam memberikan solusi, menjawab pertanyaan, dan membantu pelanggan dengan cepat dan sopan."
-      }
+      "owned_by": "Groq"
     }
   ]
-}
+};
 
 const Settings = {
-  Brainxiex_AI_Model: "brainxiexAIModel",
-  BRAINXIEX_API_KEY: "brainxiexApikey",
-
+  GROQ_API_KEY: "groqApikey",
+  GROQ_MODEL: "groqModel",
+  
   DEFAULT: {
-    brainxiexAIModel: "",
-    brainxiexApikey: "",
+    groqApikey: "",
+    groqModel: "",
   },
 };
 
-
 var MODEL = {};
-XIEX_MY_ID_API_AI_MODELS.data.forEach(item => {
-    MODEL[item.id] = item.name;
+GROQ_MODELS.data.forEach(item => {
+  MODEL[item.id] = item.name;
 });
-async function getBrainxiexModels() {
-  XIEX_MY_ID_API_AI_MODELS = await axios.get("https://xiex.my.id/api/ai/models").then(r => r.data).catch(e => XIEX_MY_ID_API_AI_MODELS);
 
-  XIEX_MY_ID_API_AI_MODELS.data.forEach(item => {
-    MODEL[item.id] = item.name;
-  });
+async function getGroqModels() {
+  try {
+    const response = await axios.get("https://api.groq.com/openai/v1/models", {
+      headers: {
+        "Authorization": `Bearer ${this.settings.groqApikey}`
+      }
+    });
+    
+    if (response.data && response.data.data) {
+      response.data.data.forEach(item => {
+        MODEL[item.id] = item.id;
+      });
+    }
+  } catch (e) {
+    console.error("Failed to fetch Groq models:", e);
+  }
 }
 
-getBrainxiexModels();
-
-class Brainxiex {
+class GroqAI {
   #commands = [
     {
-      name: "brainxiex_ai",
-      description: "Brainxiex AI",
+      name: "groq_ai",
+      description: "Groq AI",
       exec: this.run.bind(this),
     },
     {
-      name: "hide_brainxiex_ai_btn",
-      description: "Hide the Brainxiex AI button",
+      name: "hide_groq_ai_btn",
+      description: "Hide the Groq AI button",
       exec: () => this.sideButton.hide(),
     },
     {
-      name: "show_brainxiex_ai_btn",
-      description: "Show the Brainxiex button",
+      name: "show_groq_ai_btn",
+      description: "Show the Groq button",
       exec: () => this.sideButton.show(),
     },
     {
-      name: "brainxiex_update_token",
-      description: "Update Provider Token (Brainxiex AI)",
+      name: "groq_update_token",
+      description: "Update Provider Token (Groq AI)",
       exec: this.updateApiKey.bind(this),
     },
   ];
@@ -162,123 +113,107 @@ class Brainxiex {
   }
 
   async init() {
-    // this.$markdownItFile = tag("script", {
-    //   src: this.baseUrl + "assets/markdown-it.min.js",
-    // });
-
-    this.$pencilIcon = tag("img", {
-      className: "edit-text-generate-token",
-      src: this.baseUrl + "icon.png",
-      style: {
-        width: "20px",
-        height: "20px",
-      }
-    });
-    // document.head.append(this.$markdownItFile);
-    this.setupCommands();
-    this.sideButton = SideButton({
-      text: "Brainxiex AI",
-      icon: "icon.png",
-      onclick: () => this.run(),
-      backgroundColor: "#f9a8d4",
-      textColor: "#fff",
-    });
-    this.sideButton.show();
-    selectionMenu.add(
-      this.transformSelectedCode.bind(this),
-      this.$pencilIcon,
-      "all",
+    this.$pencilIcon = tag("img", {  
+      className: "edit-text-generate-token",  
+      src: this.baseUrl + "icon.png",  
+      style: {  
+        width: "20px",  
+        height: "20px",  
+      }  
+    });  
+    
+    this.setupCommands();  
+    this.sideButton = SideButton({  
+      text: "Groq AI",  
+      icon: "icon.png",  
+      onclick: () => this.run(),  
+      backgroundColor: "#00a67d",  
+      textColor: "#fff",  
+    });  
+    this.sideButton.show();  
+    selectionMenu.add(  
+      this.transformSelectedCode.bind(this),  
+      this.$pencilIcon,  
+      "all",  
     );
   }
 
-  get mdIt() {
-    if (typeof window.markdownit !== "function") {
-      throw new Error("Markdown-it library is not loaded.");
-    }
-    return window.markdownit({
-      html: false,
-      xhtmlOut: false,
-      breaks: false,
-      linkify: false,
-      typographer: false,
-      quotes: "“”‘’",
-      highlight: function (str) {
-        editorManager.editor.insert(str);
-      },
-    });
-  }
-  
-  
-  
-  async BrainxiexAI(apikey, message, model) {
+  async GroqAI(apikey, message, model) {
     try {
-      const openai = new OpenAI({
-        apiKey: apikey,
-        baseURL: 'https://xiex.my.id/api/ai',
-        dangerouslyAllowBrowser: true
-      });
-
-      // Mendapatkan semua informasi file yang sedang dibuka di editor
-      const { editor } = editorManager;
-      const session = editor.getSession();
-      const fileInfo = {
-        filename: editorManager.activeFile?.name || "",
-        path: editorManager.activeFile?.uri || "",
-        length: session.getValue().length,
-        lines: session.getLength(),
-        selection: editor.getSelectedText(),
-        content: session.getValue(),
-      };
-      const alwaysOnToas = setInterval(() => {
-        window.toast("Mohon Tunggu Sebentar", 1000);
-      },1000)
-      const response = await openai.chat.completions.create({
-        model,
-        messages: [
-          {
-        role: "system",
-        content: "Kamu adalah AI yang hanya mengeluarkan output berupa kode saja, tanpa penjelasan, tanpa teks tambahan, tanpa pembuka atau penutup, dan tanpa format markdown. Jawabanmu harus hanya berupa kode mentah sesuai permintaan user. Dilarang mengirim file, link file, atau instruksi untuk mengunduh file dalam bentuk apapun.",
-          },
-          { role: "user", content: `File Info: ${JSON.stringify(fileInfo)}` },
-          { role: "user", content: message },
-        ],
-        // temperature: 0,
-      });
-      const result = (await response).choices[0].message.content;
-      clearInterval(alwaysOnToas);
-      if (result) {
-        const { editor } = editorManager;
-        editor.session.replace(editor.getSelectionRange(), result);
-        window.toast("Kode berhasil digenerate dan ditulis.", 2000);
-      }
-    } catch (error) {
-      this.handleError(error, "Brainxiex AI Error");
+      // Mendapatkan semua informasi file yang sedang dibuka di editor  
+      const { editor } = editorManager;  
+      const session = editor.getSession();  
+      const fileInfo = {  
+        filename: editorManager.activeFile?.name || "",  
+        path: editorManager.activeFile?.uri || "",  
+        length: session.getValue().length,  
+        lines: session.getLength(),  
+        selection: editor.getSelectedText(),  
+        content: session.getValue(),  
+      };  
+      
+      const alwaysOnToas = setInterval(() => {  
+        window.toast("Mohon Tunggu Sebentar", 1000);  
+      }, 1000);
+      
+      const response = await axios.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          model,
+          messages: [
+            {  
+              role: "system",  
+              content: "Kamu adalah AI yang hanya mengeluarkan output berupa kode saja, tanpa penjelasan, tanpa teks tambahan, tanpa pembuka atau penutup, dan tanpa format markdown. Jawabanmu harus hanya berupa kode mentah sesuai permintaan user. Dilarang mengirim file, link file, atau instruksi untuk mengunduh file dalam bentuk apapun.",  
+            },  
+            { role: "user", content: `File Info: ${JSON.stringify(fileInfo)}` },  
+            { role: "user", content: message },  
+          ],
+        },
+        {
+          headers: {
+            "Authorization": `Bearer ${apikey}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      
+      clearInterval(alwaysOnToas);  
+      const result = response.data.choices[0].message.content;
+      
+      if (result) {  
+        const { editor } = editorManager;  
+        editor.session.replace(editor.getSelectionRange(), result);  
+        window.toast("Kode berhasil digenerate dan ditulis.", 2000);  
+      }  
+    } catch (error) {  
+      this.handleError(error, "Groq AI Error");  
     }
   }
+
   async getApiKey() {
-    const model = this.settings.brainxiexAIModel;
-    let apikey = this.settings.brainxiexApikey||null;
-   
-    if (apikey == null || apikey == "") {
-      let newApiKey = await MultiPrompt(
-        `Brainxiex api key`,
-        [
-          {
-            type: "text",
-            id: "apikey",
-            required: true,
-            placeholder: `Enter your Brainxiex api key`,
-          },
-        ],
-        "https://xiex.my.id/api",
-      );
-      console.log("getApiKey(" + newApiKey["apikey"] + ")");
-      apikey = newApiKey["apikey"];
-      this.updateSetting(
-        Settings.Brainxiex_APIKEY,
-        apikey,
-      );
-    }
+    const model = this.settings.groqModel;
+    let apikey = this.settings.groqApikey || null;
+
+    if (apikey == null || apikey == "") {  
+      let newApiKey = await MultiPrompt(  
+        `Groq API key`,  
+        [  
+          {  
+            type: "text",  
+            id: "apikey",  
+            required: true,  
+            placeholder: `Enter your Groq API key`,  
+          },  
+        ],  
+        "https://console.groq.com/keys",  
+      );  
+      console.log("getApiKey(" + newApiKey["apikey"] + ")");  
+      apikey = newApiKey["apikey"];  
+      this.updateSetting(  
+        Settings.GROQ_API_KEY,  
+        apikey,  
+      );  
+    }  
 
     return apikey;
   }
@@ -291,106 +226,99 @@ class Brainxiex {
       );
       if (!selectedText) return;
 
-      let model = this.settings.brainxiexAIModel;
+      let model = this.settings.groqModel;  
 
-      if (!model) {
-        let options = Object.entries(MODEL);
-        const list_model = await axios.get("https://xiex.my.id/api/ai/models")
-        .then(r => r.data?.data.map(v => ([v.id,v.name]))).catch(e => Object.entries(MODEL));
-        
-        options = list_model
+      if (!model) {  
+        await getGroqModels.call(this);
+        const options = Object.entries(MODEL);  
 
-        const selectedModel = await Select("Pilih Model ID", options, {
-          onCancel: () => {},
-          hideOnSelect: true,
-        });
-        model = selectedModel;
-        this.updateSetting("brainxiexAIModel", model);
-      }
+        const selectedModel = await Select("Pilih Model", options, {  
+          onCancel: () => {},  
+          hideOnSelect: true,  
+        });  
+        model = selectedModel;  
+        this.updateSetting("groqModel", model);  
+      }  
 
-      const apikey = await this.getApiKey();
-      if (!apikey) {
-        throw new Error("Apikey is not valid or empty");
-      }
+      const apikey = await this.getApiKey();  
+      if (!apikey) {  
+        throw new Error("API key is not valid or empty");  
+      }  
 
-      const userPromt = await Prompt(
-        `Transfrom Selected Code (Brainxiex AI)`,
-        "",
-        "text",
-        {
-          placeholder: "Enter a command to (BrainxiexAI)"+MODEL[model],
-          require: true,
-        },
-      );
-      if (!userPromt) {
-        return;
-      }
-      const message = `${userPromt}\n${selectedText}`;
+      const userPromt = await Prompt(  
+        `Transform Selected Code (Groq AI)`,  
+        "",  
+        "text",  
+        {  
+          placeholder: `Enter a command for ${model}`,  
+          require: true,  
+        },  
+      );  
+      if (!userPromt) {  
+        return;  
+      }  
+      const message = `${userPromt}\n${selectedText}`;  
 
-      this.BrainxiexAI(apikey, message, model);
-    } catch (error) {
-      this.handleError(error);
+      this.GroqAI(apikey, message, model);  
+    } catch (error) {  
+      this.handleError(error);  
     }
   }
 
   async run() {
-    let model = this.settings.brainxiexAIModel;
+    let model = this.settings.groqModel;
 
-    if (!model) {
-      let options = Object.entries(MODEL);
-      const list_model = await axios.get("https://xiex.my.id/api/ai/models")
-      .then(r => r.data?.data.map(v => ([v.id,v.name]))).catch(e => Object.entries(MODEL));
+    if (!model) {  
+      await getGroqModels.call(this);
+      const options = Object.entries(MODEL);  
 
-      options = list_model
+      const selectedModel = await Select("Pilih Model", options, {  
+        onCancel: () => {},  
+        hideOnSelect: true,  
+      });  
+      model = selectedModel;  
+      this.updateSetting("groqModel", model);  
+    }  
 
-      const selectedModel = await Select("Pilih Model ID", options, {
-        onCancel: () => {},
-        hideOnSelect: true,
-      });
-      model = selectedModel;
-      this.updateSetting("brainxiexAIModel", model);
-    }
+    try {  
+      const apikey = await this.getApiKey();  
+      if (!apikey) {  
+        throw new Error("API key is not valid or empty!");  
+      }  
 
-    try {
-      const apikey = await this.getApiKey();
-      if (!apikey) {
-        throw new Error("Apikey is not valid or empty!");
-      }
+      const message = await Prompt(`Groq AI (${model})`, "", "text", {  
+        placeholder: "Enter a command to generate a code...",  
+        required: true,  
+      });  
+      if (!message) {  
+        return;  
+      }  
 
-      const message = await Prompt(`Brainxiex AI (${model})`, "", "text", {
-        placeholder: "Enter a command to generate a code...",
-        required: true,
-      });
-      if (!message) {
-        return;
-      }
-
-      this.BrainxiexAI(apikey, message, model);
-    } catch (error) {
-      this.handleError(error);
+      this.GroqAI(apikey, message, model);  
+    } catch (error) {  
+      this.handleError(error);  
     }
   }
 
   async updateApiKey() {
-    const model = this.settings.brainxiexAIModel;
     let newApiKey = await MultiPrompt(
-      `Brainxiex Api Key`,
+      "Groq API Key",
       [
         {
           type: "text",
           id: "apikey",
           required: true,
-          placeholder: `Enter your Brainxiex api key`,
+          placeholder: "Enter your Groq API key",
         },
       ],
-      "https://xiex.my.id/api",
+      "https://console.groq.com/keys",
     );
 
-    this.updateSetting(
-      "brainxiexApikey",
-      newApiKey["apikey"],
-    );
-    window.toast("Api Key Update.", 3000);
+    this.updateSetting(  
+      "groqApikey",  
+      newApiKey["apikey"],  
+    );  
+    window.toast("API Key Updated.", 3000);
   }
 
   updateSetting(key, newValue) {
@@ -407,18 +335,18 @@ class Brainxiex {
     return {
       list: [
         {
-          key: "brainxiexAIModel",
-          text: "Brainxiex AI MODEL",
-          info: "Lihat Di https://xiex.my.id/api/ai#models.",
-          value: settings.brainxiexAIModel,
+          key: "groqModel",
+          text: "Groq Model",
+          info: "Select Groq model to use",
+          value: settings.groqModel,
           select: Object.entries(MODEL),
         },
         {
-          key: "brainxiexApikey",
-          text: "Brainxiex Api Key",
-          info: "The Api Key to used Brainxiex AI. Beli Di https://xiex.my.id/api#buy-key",
-          value: this.settings.brainxiexAIModel,
-          prompt: "Brainxiex Api Key",
+          key: "groqApikey",
+          text: "Groq API Key",
+          info: "The API Key to use Groq AI. Get it from https://console.groq.com/keys",
+          value: this.settings.groqModel,
+          prompt: "Groq API Key",
           promptType: "text",
           promptOption: [{ require: true }],
         },
@@ -429,32 +357,26 @@ class Brainxiex {
       },
     };
   }
+
   handleError(error, title) {
     if (error) {
       alert(title || "Error", error.message);
     }
   }
 
-  // get getCurrentModeName() {
-  //   const { editor } = editorManager;
-  //   const session = editor.getSession();
-  //   const currentMode = session.getMode();
-  //   const currentModeName = currentMode.$id.split("/");
-  //   return currentModeName[currentModeName.length - 1];
-  // }
-
   async destroy() {
     this.clearCommands();
     delete appSettings.value[plugin.id];
     appSettings.update(false);
 
-    this.$markdownItFile.remove();
-    this.$pencilIcon.remove();
+    if (this.$pencilIcon) {
+      this.$pencilIcon.remove();
+    }
   }
 }
 
 if (window.acode) {
-  const acodePlugin = new Brainxiex();
+  const acodePlugin = new GroqAI();
   acode.setPluginInit(
     plugin.id,
     (baseUrl, $page, { cacheFileUrl, cacheFile }) => {
