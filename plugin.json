@@ -1,0 +1,20 @@
+{
+  "id": "xiex.my.id_api_ai",
+  "name": "Brainxiex AI",
+  "main": "dist/main.js",
+  "version": "3.1.2",
+  "readme": "readme.md",
+  "icon": "icon.jpg",
+  "files": [],
+  "minVersionCode": 290,
+  "price": 0,
+  "license": "MIT",
+  "keywords": ["brainxiex", "ai", "llm", "openai","chatgpt"],
+  "changelogs": "ChangeLog.md",
+  "contributors": [],
+  "author": {
+    "name": "Barqah-Xiex",
+    "email": "barqahgaming@gmail.com",
+    "github": "Barqah-Xiex"
+  }
+}

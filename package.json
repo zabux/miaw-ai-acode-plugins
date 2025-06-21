@@ -1,0 +1,41 @@
+{
+  "name": "brainxiex-ai-acode",
+  "version": "3.3.0",
+  "description": "A plugin for Acode that integrates Blackbox AI and generative AI features for code assistance.",
+  "main": "dist/main.js",
+  "repository": "https://github.com/Barqah-Xiex/brainxiex-ai-acode-plugins",
+  "author": "Barqah-Xiex",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.23.0",
+    "@types/ace": "^0.0.51",
+    "axios": "^1.10.0",
+    "brainxiex": "^1.1.0",
+    "esbuild": "^0.25.5",
+    "html-tag-js": "^1.1.43",
+    "ip": "^2.0.1",
+    "ncp": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.24.3",
+    "@babel/core": "^7.24.3",
+    "@babel/plugin-transform-runtime": "^7.24.3",
+    "@babel/preset-env": "^7.24.3",
+    "babel-loader": "^9.2.1",
+    "jszip": "^3.10.1",
+    "live-server": "^1.2.2",
+    "markdown-it": "^14.1.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^6.0.0"
+  },
+  "scripts": {
+    "build": "webpack && python .acode/sendfile.py",
+    "build-release": "webpack --mode production && python .acode/sendfile.py",
+    "start-dev": "node .acode/start-dev"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "not dead",
+    "not < 0.25%"
+  ]
+}
