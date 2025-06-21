@@ -1,4 +1,8 @@
-# BlackBox AI
+# Brainxiex AI Acode Plugin
+
+<p align="center">
+    <img src="icon.png" alt="Brainxiex AI Acode Plugin Icon" width="120" />
+</p>
 
 ## Yuk Kunjungi
 
