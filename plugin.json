@@ -1,6 +1,6 @@
 {
-  "id": "xiex.my.id_api_ai",
-  "name": "Brainxiex AI",
+  "id": "awy.my.id-miaw-ai",
+  "name": "Miaw AI",
   "main": "dist/main.js",
   "version": "3.2.2",
   "readme": "readme.md",
@@ -13,7 +13,7 @@
   "changelogs": "ChangeLog.md",
   "contributors": [],
   "author": {
-    "name": "Barqah-Xiex",
+    "name": "Miaw-Team",
     "email": "barqahgaming@gmail.com",
     "github": "Barqah-Xiex"
   }
